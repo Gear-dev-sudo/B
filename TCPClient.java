@@ -1,3 +1,5 @@
+package B;
+
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
@@ -16,6 +18,7 @@ import static java.lang.System.err;
  7.使用网络字节输入流InputStream对象中的方法read读取服务回写的数据
  8.释放资源(FileInputStream,Socket)
  */
+
 public class TCPClient {
 
     public static void main(String[] args) throws IOException {
@@ -27,15 +30,16 @@ public class TCPClient {
         login(in);
 
         while (flag) {
-            System.out.println("请输入对应序号选择功能：");
+            System.out.println("**************************文件传输系统CLI****************************");
             System.out.println("0、退出系统");
-            System.out.println("1、从服务中获取文件的元数据列表");
+            System.out.println("1、已上传文件列表");
             System.out.println("2、上传文件");
             System.out.println("3、下载文件");
-            System.out.println("4、检查磁盘空间");
+            System.out.println("4、磁盘剩余空间与占用查询");
+            System.out.println("5、目录列表");
             String key = in.nextLine();
 
-            Socket socket = new Socket("127.0.0.1", 8686);
+            Socket socket = new Socket("127.0.0.1", 65530);
             DataOutputStream dos = new DataOutputStream(
                     socket.getOutputStream());
             dos.writeUTF(key);
@@ -58,11 +62,15 @@ public class TCPClient {
                 case "4":
                     space();
                     break;
+
+                case "5":
+                    getDB();
+                    break;
                 case "0":
                     flag = false;
                     break;
                 default:
-                    System.out.println("输入无效，请重新输入");
+                    System.out.println("输入非法，请输入0-4");
                     break;
             }
 
@@ -71,6 +79,7 @@ public class TCPClient {
         // socket.close();
         in.close();
     }
+
 
     public static void sendFile(Scanner in) throws IOException {
         String fileName = null;
@@ -84,7 +93,7 @@ public class TCPClient {
             // 1.创建一个本地字节输入流FileInputStream对象,构造方法中绑定要读取的数据源
             fis = new FileInputStream(file);
             // 2.创建一个客户端Socket对象,构造方法中绑定服务器的IP地址和端口号
-            socket = new Socket("127.0.0.1", 8686);
+            socket = new Socket("127.0.0.1", 65530);
             // 3.使用Socket中的方法getOutputStream,获取网络字节输出流OutputStream对象
             OutputStream os = socket.getOutputStream();
 
@@ -152,7 +161,7 @@ public class TCPClient {
             // 1.创建一个本地字节输入流FileInputStream对象,构造方法中绑定要读取的数据源
             fos = new FileOutputStream(file);
             // 2.创建一个客户端Socket对象,构造方法中绑定服务器的IP地址和端口号
-            socket = new Socket("127.0.0.1", 8686);
+            socket = new Socket("127.0.0.1", 65530);
             // 3.使用Socket中的方法getInputStream,获取网络字节输入流getInputStream对象
             is = socket.getInputStream();
 
@@ -185,46 +194,46 @@ public class TCPClient {
     public static void login(Scanner in) throws IOException {
         int tag = 0;
         Socket socket=null;
-       try {
-           socket = new Socket("127.0.0.1", 8686);
-           DataOutputStream dos = null;
-           DataInputStream dis = null;
-           while (tag == 0) {
-               //System.out.println("请输入用户名：");
+        try {
+            socket = new Socket("127.0.0.1", 65530);
+            DataOutputStream dos = null;
+            DataInputStream dis = null;
+            while (tag == 0) {
+                //System.out.println("请输入用户名：");
 
-               String uname = "admin";
+                String uname = "admin";
 
-              // System.out.println("请输入密码：");
-               String pwd = "password";
+                // System.out.println("请输入密码：");
+                String pwd = "password";
 
-               dos = new DataOutputStream(socket.getOutputStream());
+                dos = new DataOutputStream(socket.getOutputStream());
 
-               dos.writeUTF(uname);
-               dos.flush();
+                dos.writeUTF(uname);
+                dos.flush();
 
-               dos.writeUTF(pwd);
-               dos.flush();
+                dos.writeUTF(pwd);
+                dos.flush();
 
-               dis = new DataInputStream(socket.getInputStream());
-               tag = dis.readInt();
-               if (tag == 1) {
-                   System.out.println("于端口: "+socket.getPort()+" C-S连接成功");
-               } else {
-                   err.println("连接未成功");
-               }
-           }
-           dis.close();
-           dos.close();
-       }
-       catch (Exception e)
-       {
-           e.printStackTrace();
-       }
+                dis = new DataInputStream(socket.getInputStream());
+                tag = dis.readInt();
+                if (tag == 1) {
+                    System.out.println("于端口: "+socket.getPort()+" C-S连接成功");
+                } else {
+                    err.println("连接未成功");
+                }
+            }
+            dis.close();
+            dos.close();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
         socket.close();
     }
 
     public static void getDB() throws IOException {
-        Socket socket = new Socket("127.0.0.1", 8686);
+        Socket socket = new Socket("127.0.0.1", 65530);
         DataInputStream dis = new DataInputStream(socket.getInputStream());
         int len = dis.readInt();
 
@@ -244,7 +253,7 @@ public class TCPClient {
         System.out.println("总空间大小 : " + totalSpace / 1024 / 1024 / 1024 + "G");
         System.out.println("剩余空间大小 : " + freeSpace / 1024 / 1024 / 1024 + "G\n");
 
-        Socket socket = new Socket("127.0.0.1", 8686);
+        Socket socket = new Socket("127.0.0.1", 65530);
         DataInputStream dis = new DataInputStream(socket.getInputStream());
         long StotalSpace = dis.readLong();
         long SfreeSpace =  dis.readLong();
@@ -258,7 +267,7 @@ public class TCPClient {
 
     public static void sendmess(String str) throws IOException{
 
-        Socket socket = new Socket("127.0.0.1", 8686);
+        Socket socket = new Socket("127.0.0.1", 65530);
         DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
 
         dos.writeUTF(str);

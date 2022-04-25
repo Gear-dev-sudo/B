@@ -1,3 +1,5 @@
+package B;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -28,13 +30,18 @@ import java.util.List;
 public class TCPServer {
 
     private static final List<String> DB = new ArrayList<String>();
-
+    private static final List<String> DD = new ArrayList<String>();
     public static void main(String[] args) throws IOException {
         // 1.创建一个服务器ServerSocket对象,和系统要指定的端口号
-        ServerSocket server = new ServerSocket(8686);
+        ServerSocket server = new ServerSocket(65530);
         //从DB.txt文件中那数据给DB
         initDB(DB);
-
+        try {
+            initDirectoryData(DD);
+            initDD(DD);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         String flag = "Y";
         while(true){
             //验证登录
@@ -47,6 +54,8 @@ public class TCPServer {
                 String key = dis.readUTF();
                 dis.close();
                 socket.close();
+
+
 
                 switch (key.charAt(0)) {
                     case '1':
@@ -64,6 +73,14 @@ public class TCPServer {
                     case '4':
                         //发送磁盘空间
                         sendspace(server);
+                        break;
+                    case '5':
+                        //发送目录内容
+                        try {
+                            sendDirData(server);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                         break;
                     case '0':
                         flag = "N";
@@ -83,6 +100,34 @@ public class TCPServer {
 
         //	socket.close();
         //	server.close();
+    }
+
+    private static void initDD(List<String> dd) throws IOException {
+
+        FileInputStream fis = new FileInputStream("D:\\server\\names.txt");// FileInputStream
+        // 从文件系统中的某个文件中获取字节
+        InputStreamReader  isr = new InputStreamReader(fis);// InputStreamReader 是字节流通向字符流的桥梁,
+        BufferedReader  br = new BufferedReader(isr);// 从字符输入流中读取文件中的内容,封装了一个new InputStreamReader的对象
+        String str = null;
+        while ((str = br.readLine()) != null) {
+            DD.add(str);
+            System.out.println(str);//del
+        }
+
+        br.close();
+    }
+
+    private static void    sendDirData(ServerSocket server)throws Exception {
+        Socket socket = server.accept();
+        DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+        int len = DD.size();
+        dos.writeInt(len);
+
+        for(int i=0;i<len;i++){
+            dos.writeUTF(DD.get(i));
+        }
+        dos.close();
+        socket.close();
     }
 
     public static void takeFile(ServerSocket server) throws IOException {
@@ -258,6 +303,26 @@ public class TCPServer {
         }
         dos.close();
         socket.close();
+    }
+
+    public static void initDirectoryData(List<String> DD) throws Exception {
+
+        File file = new File("D://server");
+        File[] files = file.listFiles();
+        try {
+            File file2 = new File("D://server//names.txt");
+            FileWriter fw = new FileWriter(file2);
+            PrintWriter pw = new PrintWriter(fw, true);
+            for (int i = 0; i < files.length; i++) {
+                pw.println(files[i].getName());
+                System.out.println(files[i].getName());//del
+            }
+            pw.close();
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     public static void saveDB(List<String> DB ) throws IOException {
